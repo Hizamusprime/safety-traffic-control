@@ -84,6 +84,34 @@ router.post("/", async (req, res) => {
     console.error(e);
     return res.status(500).json({ error: e.message || String(e) });
   }
+import Handlebars from "handlebars";
+
+router.post("/html", async (req, res) => {
+  try {
+    const { template, version, job_id, data } = req.body || {};
+    if (!template || !version || !job_id || !data) {
+      return res.status(400).json({ error: "Missing: template, version, job_id, data" });
+    }
+
+    const TEMPLATE_BUCKET = process.env.TEMPLATE_BUCKET || "templates";
+    const templateKey = `${template}/${version}/${template}.html`;
+
+    const { data: dl, error: dlErr } = await supabase.storage
+      .from(TEMPLATE_BUCKET)
+      .download(templateKey);
+
+    if (dlErr) throw new Error(`Template download failed: ${dlErr.message}`);
+
+    const html = Buffer.from(await dl.arrayBuffer()).toString("utf8");
+    const compiled = Handlebars.compile(html);
+    const outputHtml = compiled({ ...data, job_id });
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(200).send(outputHtml);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: e.message || String(e) });
+  }
 });
 
 export default router;
