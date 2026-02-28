@@ -6,6 +6,8 @@ import { promisify } from "util";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { createClient } from "@supabase/supabase-js";
+import Handlebars from "handlebars";
+
 
 const router = express.Router();
 const execAsync = promisify(exec);
@@ -27,7 +29,7 @@ function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
 }
 
-router.post("/", async (req, res) => {
+router.post("/html", async (req, res) => {
   try {
     const { template, version, job_id, data } = req.body || {};
     if (!template || !version || !job_id || !data) {
@@ -84,7 +86,7 @@ router.post("/", async (req, res) => {
     console.error(e);
     return res.status(500).json({ error: e.message || String(e) });
   }
-import Handlebars from "handlebars";
+
 
 router.post("/html", async (req, res) => {
   try {
